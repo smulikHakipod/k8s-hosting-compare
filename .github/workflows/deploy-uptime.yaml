@@ -1,5 +1,11 @@
 name: Deploy k8s uptime container
-on: [push]
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "http-server/**"
+      - "kubeconfigs/**"
+      - ".github/workflows/deploy-uptime.yaml"
 
 jobs:
   Deploy:
