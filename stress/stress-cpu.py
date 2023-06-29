@@ -7,8 +7,48 @@ import time
 from prometheus_client.exposition import push_to_gateway
 import typing
 import urllib.request
-# run stress-ng command and send the yaml out.yaml to Prometheus using the prometheus-client library
 
+# Create a CollectorRegistry object
+registry = prometheus_client.CollectorRegistry()
+
+# Create gauges and register them in the registry
+gauges = [
+    prometheus_client.Gauge(
+        'bogo_ops_per_second_usr_sys_time',
+        'Bogo operations per second (usr+sys time)',
+        registry=registry  # register the gauge
+    ),
+    prometheus_client.Gauge(
+        'bogo_ops_per_second_real_time',
+        'Bogo operations per second (real time)',
+        registry=registry
+    ),
+    prometheus_client.Gauge(
+        'wall_clock_time',
+        'Wall clock time',
+        registry=registry
+    ),
+    prometheus_client.Gauge(
+        'user_time',
+        'User time',
+        registry=registry
+    ),
+    prometheus_client.Gauge(
+        'system_time',
+        'System time',
+        registry=registry
+    ),
+    prometheus_client.Gauge(
+        'cpu_usage_per_instance',
+        'CPU usage per instance',
+        registry=registry
+    ),
+    prometheus_client.Gauge(
+        'max_rss',
+        'Maximum resident set size (max RSS)',
+        registry=registry
+    ),
+]
 
 def run_stress():
     # run stress-ng command
@@ -18,45 +58,6 @@ def run_stress():
         data = yaml.safe_load(f)
 
     print("Sending metrics to Prometheus Pushgateway")
-
-
-    # Create a CollectorRegistry object
-    registry = prometheus_client.CollectorRegistry()
-
-    # Create gauges and register them in the registry
-    gauges = [
-        prometheus_client.Gauge(
-            'bogo_ops_per_second_usr_sys_time',
-            'Bogo operations per second (usr+sys time)',
-        ),
-        prometheus_client.Gauge(
-            'bogo_ops_per_second_real_time',
-            'Bogo operations per second (real time)',
-        ),
-        prometheus_client.Gauge(
-            'wall_clock_time',
-            'Wall clock time',
-        ),
-        prometheus_client.Gauge(
-            'user_time',
-            'User time',
-        ),
-        prometheus_client.Gauge(
-            'system_time',
-            'System time',
-        ),
-        prometheus_client.Gauge(
-            'cpu_usage_per_instance',
-            'CPU usage per instance',
-        ),
-        prometheus_client.Gauge(
-            'max_rss',
-            'Maximum resident set size (max RSS)',
-        ),
-    ]
-
-    for gauge in gauges:
-        registry.register(gauge)
 
     # Set the metric values
     gauges[0].set(data['metrics'][0]['bogo-ops-per-second-usr-sys-time'])
