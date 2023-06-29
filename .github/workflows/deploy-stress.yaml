@@ -59,7 +59,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: |
-            yaronshani/stress:latest
+            yaronshani/stress:0.0.2
 
       - name: kubectl apply
         shell: bash
@@ -72,5 +72,6 @@ jobs:
             KUBECONFIG=${file} helm upgrade --create-namespace --namespace=stress-testing --install stress ./stress/helm/stress \
               --set provider=${elements[0]} \
               --set prometheus.user=admin \
-              --set prometheus.password=${{ secrets.PROMETHEUS_PASSWORD }} 
+              --set prometheus.password=${{ secrets.PROMETHEUS_PASSWORD }} \
+              --set image.tag=0.0.2
           done;
