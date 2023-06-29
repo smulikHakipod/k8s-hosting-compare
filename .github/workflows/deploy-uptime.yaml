@@ -7,9 +7,14 @@ on:
       - "kubeconfigs/**"
       - ".github/workflows/deploy-uptime.yaml"
 
+
+
+
 jobs:
   Deploy:
     runs-on: ubuntu-latest
+    env:
+      RUN_LOCAL: ${{ secrets.RUN_LOCAL }}
     steps:
       - uses: actions/checkout@v3
 
@@ -29,6 +34,7 @@ jobs:
           kubectl version --client=true
       - uses: azure/setup-helm@v3
       - name: Unlock secrets
+        if: ${{ env.RUN_LOCAL != 'true' }}
         uses: sliteteam/github-action-git-crypt-unlock@1.2.0
         env:
           GIT_CRYPT_KEY: ${{ secrets.GPG_PUBLIC_KEY_BLOCK }}
@@ -40,10 +46,9 @@ jobs:
             IFS='-' read -ra elements <<< "$(basename $file)"
             KUBECONFIG=${file} kubectl config get-contexts 
             KUBECONFIG=${file} kubectl cluster-info
-            KUBECONFIG=${file} helm repo add nginx-stable https://helm.nginx.com/stable
-            KUBECONFIG=${file} helm repo update
+            #KUBECONFIG=${file} helm repo update
             # digitialocean said to put  controller.publishService.enabled=true here
-            KUBECONFIG=${file} helm upgrade --namespace=default --install nginx-ingress nginx-stable/nginx-ingress --set rbac.create=true --set controller.publishService.enabled=true
+            KUBECONFIG=${file} helm upgrade --namespace=default --repo https://kubernetes.github.io/ingress-nginx --install nginx-ingress ingress-nginx --set rbac.create=true --set controller.service.internal.enabled=true
             KUBECONFIG=${file} helm upgrade --create-namespace --namespace=uptime-test --install --set ingress.enabled=true --set ingress.className=nginx --set ingress.hosts[0].host=${elements[0]}.yaronshani.me,ingress.hosts[0].paths[0].path=/,ingress.hosts[0].paths[0].pathType=Prefix http-server ./http-server 
           done;
 
